@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import Toggle from './Toggle';
 import Slider from './Slider';
+import { trackPasswordGeneration, trackCopyToClipboard } from '../lib/gtag';
 
 const PasswordGenerator = () => {
   const [password, setPassword] = useState('');
@@ -85,6 +86,16 @@ const PasswordGenerator = () => {
     setPassword(generatedPassword);
     setCopied(false);
 
+    trackPasswordGeneration({
+      length,
+      options: {
+        lowercase: includeLowercase,
+        uppercase: includeUppercase,
+        numbers: includeNumbers,
+        symbols: includeSymbols
+      }
+    });
+
     // Animation for password change
     gsap.fromTo(passwordRef.current,
       { scale: 0.95, opacity: 0.5 },
@@ -99,16 +110,12 @@ const PasswordGenerator = () => {
       await navigator.clipboard.writeText(password);
       setCopied(true);
       
+      trackCopyToClipboard();
+
       // Animation for copy success
       gsap.fromTo(passwordRef.current,
         { scale: 1 },
-        { 
-          duration: 0.2,
-          scale: 1.02,
-          yoyo: true,
-          repeat: 1,
-          ease: 'power2.out'
-        }
+        { duration: 0.2, scale: 1.05, yoyo: true, repeat: 1, ease: 'power2.out' }
       );
       
       setTimeout(() => setCopied(false), 2000);

@@ -1,0 +1,21 @@
+{
+  "name": "The Password Creator",
+  "short_name": "Password Creator",
+  "description": "Generate strong, secure passwords instantly with customizable options.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffd000",
+  "theme_color": "#ffd000",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
