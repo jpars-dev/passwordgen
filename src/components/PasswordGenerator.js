@@ -60,6 +60,12 @@ const PasswordGenerator = () => {
     return () => observer.disconnect();
   }, []);
 
+  const getRandomInt = (max) => {
+    const array = new Uint32Array(1);
+    window.crypto.getRandomValues(array);
+    return array[0] % max;
+  };
+
   const generatePassword = () => {
     const lowercase = 'abcdefghijklmnopqrstuvwxyz';
     const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -67,21 +73,41 @@ const PasswordGenerator = () => {
     const symbols = '!@#$%^&*()-_=+[]{}|;:\'",./<>?';
 
     let chars = '';
-    if (includeLowercase) chars += lowercase;
-    if (includeUppercase) chars += uppercase;
-    if (includeNumbers) chars += numbers;
-    if (includeSymbols) chars += symbols;
+    const requiredChars = [];
+    if (includeLowercase) {
+      chars += lowercase;
+      requiredChars.push(lowercase[getRandomInt(lowercase.length)]);
+    }
+    if (includeUppercase) {
+      chars += uppercase;
+      requiredChars.push(uppercase[getRandomInt(uppercase.length)]);
+    }
+    if (includeNumbers) {
+      chars += numbers;
+      requiredChars.push(numbers[getRandomInt(numbers.length)]);
+    }
+    if (includeSymbols) {
+      chars += symbols;
+      requiredChars.push(symbols[getRandomInt(symbols.length)]);
+    }
 
     if (chars === '') {
       setPassword('Please select at least one character type');
       return;
     }
 
-    let generatedPassword = '';
-    for (let i = 0; i < length; i++) {
-      const randomIndex = Math.floor(Math.random() * chars.length);
-      generatedPassword += chars[randomIndex];
+    const passwordChars = [...requiredChars];
+    for (let i = passwordChars.length; i < length; i++) {
+      const randomIndex = getRandomInt(chars.length);
+      passwordChars.push(chars[randomIndex]);
     }
+
+    for (let i = passwordChars.length - 1; i > 0; i--) {
+      const j = getRandomInt(i + 1);
+      [passwordChars[i], passwordChars[j]] = [passwordChars[j], passwordChars[i]];
+    }
+
+    const generatedPassword = passwordChars.join('');
 
     setPassword(generatedPassword);
     setCopied(false);
