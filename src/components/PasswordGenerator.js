@@ -9,15 +9,40 @@ import { trackPasswordGeneration, trackCopyToClipboard } from '../lib/gtag';
 const PasswordGenerator = () => {
   const [password, setPassword] = useState('');
   const [length, setLength] = useState(12);
-  const [includeLowercase, setIncludeLowercase] = useState(false);
-  const [includeUppercase, setIncludeUppercase] = useState(false);
-  const [includeNumbers, setIncludeNumbers] = useState(false);
+  const [includeLowercase, setIncludeLowercase] = useState(true);
+  const [includeUppercase, setIncludeUppercase] = useState(true);
+  const [includeNumbers, setIncludeNumbers] = useState(true);
   const [includeSymbols, setIncludeSymbols] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const cardRef = useRef(null);
   const passwordRef = useRef(null);
   const controlsRef = useRef(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('passwordPrefs');
+    if (saved) {
+      try {
+        const prefs = JSON.parse(saved);
+        if (typeof prefs.length === 'number') setLength(prefs.length);
+        if (typeof prefs.includeLowercase === 'boolean') setIncludeLowercase(prefs.includeLowercase);
+        if (typeof prefs.includeUppercase === 'boolean') setIncludeUppercase(prefs.includeUppercase);
+        if (typeof prefs.includeNumbers === 'boolean') setIncludeNumbers(prefs.includeNumbers);
+        if (typeof prefs.includeSymbols === 'boolean') setIncludeSymbols(prefs.includeSymbols);
+      } catch {}
+    }
+  }, []);
+
+  useEffect(() => {
+    const prefs = {
+      length,
+      includeLowercase,
+      includeUppercase,
+      includeNumbers,
+      includeSymbols
+    };
+    localStorage.setItem('passwordPrefs', JSON.stringify(prefs));
+  }, [length, includeLowercase, includeUppercase, includeNumbers, includeSymbols]);
 
   useEffect(() => {
     // Create a MutationObserver to watch for the --can-animate property
@@ -186,6 +211,9 @@ const PasswordGenerator = () => {
         <button
           className="btn btn-primary mt-6 text-lg"
           onClick={generatePassword}
+          disabled={
+            !includeLowercase && !includeUppercase && !includeNumbers && !includeSymbols
+          }
         >
           Generate Password
         </button>
