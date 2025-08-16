@@ -13,10 +13,11 @@ const PasswordGenerator = () => {
   const [includeUppercase, setIncludeUppercase] = useState(true);
   const [includeNumbers, setIncludeNumbers] = useState(true);
   const [includeSymbols, setIncludeSymbols] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [copyStatus, setCopyStatus] = useState('idle');
 
   const cardRef = useRef(null);
   const passwordRef = useRef(null);
+  const passwordInputRef = useRef(null);
   const controlsRef = useRef(null);
 
   useEffect(() => {
@@ -111,7 +112,7 @@ const PasswordGenerator = () => {
     }
 
     setPassword(generatedPassword);
-    setCopied(false);
+    setCopyStatus('idle');
 
     trackPasswordGeneration({
       length,
@@ -132,11 +133,23 @@ const PasswordGenerator = () => {
 
   const copyToClipboard = async () => {
     if (!password || password === 'Please select at least one character type') return;
-    
+
     try {
-      await navigator.clipboard.writeText(password);
-      setCopied(true);
-      
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(password);
+      } else {
+        const input = passwordInputRef.current;
+        input.focus();
+        input.select();
+        const successful = document.execCommand('copy');
+        window.getSelection().removeAllRanges();
+        if (!successful) {
+          throw new Error('Fallback copy command failed');
+        }
+      }
+
+      setCopyStatus('success');
+
       trackCopyToClipboard();
 
       // Animation for copy success
@@ -144,11 +157,12 @@ const PasswordGenerator = () => {
         { scale: 1 },
         { duration: 0.2, scale: 1.05, yoyo: true, repeat: 1, ease: 'power2.out' }
       );
-      
-      setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error('Failed to copy password:', err);
+      setCopyStatus('error');
     }
+
+    setTimeout(() => setCopyStatus('idle'), 2000);
   };
 
   return (
@@ -161,14 +175,23 @@ const PasswordGenerator = () => {
             value={password}
             readOnly
             placeholder="Generated password"
+            ref={passwordInputRef}
           />
           <button
             className={`btn btn-sm absolute right-1 top-1 ${
-              copied ? 'btn-success' : 'btn-primary'
+              copyStatus === 'success'
+                ? 'btn-success'
+                : copyStatus === 'error'
+                ? 'btn-error'
+                : 'btn-primary'
             }`}
             onClick={copyToClipboard}
           >
-            {copied ? 'Copied!' : 'Copy'}
+            {copyStatus === 'success'
+              ? 'Copied!'
+              : copyStatus === 'error'
+              ? 'Failed'
+              : 'Copy'}
           </button>
         </div>
 
