@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { gsap } from 'gsap';
 import PasswordGenerator from '../components/PasswordGenerator';
 
 export default function Home() {
@@ -20,26 +19,28 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    // Create a timeline for sequential animations
-    const tl = gsap.timeline();
+    import('gsap').then(({ gsap }) => {
+      // Create a timeline for sequential animations
+      const tl = gsap.timeline();
 
-    // Title animation first
-    tl.fromTo(titleRef.current, 
-      { y: -50, opacity: 0 },
-      { duration: 1, y: 0, opacity: 1, ease: 'power3.out' }
-    )
-    // Then trigger content animation
-    .to(contentRef.current, {
-      duration: 0,
-      onComplete: () => {
-        contentRef.current.style.setProperty('--can-animate', 'true');
-      }
-    })
-    // Finally animate the footer
-    .fromTo(footerRef.current,
-      { y: 20, opacity: 0 },
-      { duration: 0.5, y: 0, opacity: 1, ease: 'power2.out' }
-    );
+      // Title animation first
+      tl.fromTo(titleRef.current,
+        { y: -50, opacity: 0 },
+        { duration: 1, y: 0, opacity: 1, ease: 'power3.out' }
+      )
+      // Then trigger content animation
+      .to(contentRef.current, {
+        duration: 0,
+        onComplete: () => {
+          contentRef.current.style.setProperty('--can-animate', 'true');
+        }
+      })
+      // Finally animate the footer
+      .fromTo(footerRef.current,
+        { y: 20, opacity: 0 },
+        { duration: 0.5, y: 0, opacity: 1, ease: 'power2.out' }
+      );
+    });
   }, []);
 
   return (
