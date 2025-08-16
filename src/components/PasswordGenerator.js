@@ -6,13 +6,22 @@ import Toggle from './Toggle';
 import Slider from './Slider';
 import { trackPasswordGeneration, trackCopyToClipboard } from '../lib/gtag';
 
+const CHAR_MAP = {
+  lowercase: 'abcdefghijklmnopqrstuvwxyz',
+  uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+  numbers: '0123456789',
+  symbols: "!@#$%^&*()-_=+[]{}|;:'\",./<>?"
+};
+
 const PasswordGenerator = () => {
   const [password, setPassword] = useState('');
   const [length, setLength] = useState(12);
-  const [includeLowercase, setIncludeLowercase] = useState(false);
-  const [includeUppercase, setIncludeUppercase] = useState(false);
-  const [includeNumbers, setIncludeNumbers] = useState(false);
-  const [includeSymbols, setIncludeSymbols] = useState(false);
+  const [options, setOptions] = useState({
+    lowercase: false,
+    uppercase: false,
+    numbers: false,
+    symbols: false
+  });
   const [copied, setCopied] = useState(false);
 
   const cardRef = useRef(null);
@@ -61,16 +70,10 @@ const PasswordGenerator = () => {
   }, []);
 
   const generatePassword = () => {
-    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
-    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const numbers = '0123456789';
-    const symbols = '!@#$%^&*()-_=+[]{}|;:\'",./<>?';
-
-    let chars = '';
-    if (includeLowercase) chars += lowercase;
-    if (includeUppercase) chars += uppercase;
-    if (includeNumbers) chars += numbers;
-    if (includeSymbols) chars += symbols;
+    const chars = Object.entries(CHAR_MAP).reduce(
+      (acc, [key, value]) => (options[key] ? acc + value : acc),
+      ''
+    );
 
     if (chars === '') {
       setPassword('Please select at least one character type');
@@ -88,16 +91,12 @@ const PasswordGenerator = () => {
 
     trackPasswordGeneration({
       length,
-      options: {
-        lowercase: includeLowercase,
-        uppercase: includeUppercase,
-        numbers: includeNumbers,
-        symbols: includeSymbols
-      }
+      options
     });
 
     // Animation for password change
-    gsap.fromTo(passwordRef.current,
+    gsap.fromTo(
+      passwordRef.current,
       { scale: 0.95, opacity: 0.5 },
       { duration: 0.3, scale: 1, opacity: 1, ease: 'power2.out' }
     );
@@ -159,26 +158,34 @@ const PasswordGenerator = () => {
           <div className="space-y-4">
             <Toggle
               label="Include Lowercase"
-              checked={includeLowercase}
-              onChange={(e) => setIncludeLowercase(e.target.checked)}
+              checked={options.lowercase}
+              onChange={(e) =>
+                setOptions({ ...options, lowercase: e.target.checked })
+              }
             />
 
             <Toggle
               label="Include Uppercase"
-              checked={includeUppercase}
-              onChange={(e) => setIncludeUppercase(e.target.checked)}
+              checked={options.uppercase}
+              onChange={(e) =>
+                setOptions({ ...options, uppercase: e.target.checked })
+              }
             />
 
             <Toggle
               label="Include Numbers"
-              checked={includeNumbers}
-              onChange={(e) => setIncludeNumbers(e.target.checked)}
+              checked={options.numbers}
+              onChange={(e) =>
+                setOptions({ ...options, numbers: e.target.checked })
+              }
             />
 
             <Toggle
               label="Include Symbols"
-              checked={includeSymbols}
-              onChange={(e) => setIncludeSymbols(e.target.checked)}
+              checked={options.symbols}
+              onChange={(e) =>
+                setOptions({ ...options, symbols: e.target.checked })
+              }
             />
           </div>
         </div>
