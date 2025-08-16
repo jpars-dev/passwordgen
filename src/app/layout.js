@@ -1,6 +1,7 @@
 import './globals.css'
 import Script from 'next/script'
-import { GA_MEASUREMENT_ID } from '../lib/gtag'
+
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
 
 export const metadata = {
   title: 'The Password Creator | Secure Password Generator',
