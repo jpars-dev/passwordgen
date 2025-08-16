@@ -6,13 +6,22 @@ import Toggle from './Toggle';
 import Slider from './Slider';
 import { trackPasswordGeneration, trackCopyToClipboard } from '../lib/gtag';
 
+const CHAR_SETS = {
+  lowercase: 'abcdefghijklmnopqrstuvwxyz',
+  uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+  numbers: '0123456789',
+  symbols: `!@#$%^&*()-_=+[]{}|;:'",./<>?`,
+};
+
 const PasswordGenerator = () => {
   const [password, setPassword] = useState('');
   const [length, setLength] = useState(12);
-  const [includeLowercase, setIncludeLowercase] = useState(true);
-  const [includeUppercase, setIncludeUppercase] = useState(true);
-  const [includeNumbers, setIncludeNumbers] = useState(true);
-  const [includeSymbols, setIncludeSymbols] = useState(false);
+  const [options, setOptions] = useState({
+    lowercase: true,
+    uppercase: true,
+    numbers: true,
+    symbols: false,
+  });
   const [copyStatus, setCopyStatus] = useState('idle');
 
   const cardRef = useRef(null);
@@ -26,10 +35,9 @@ const PasswordGenerator = () => {
       try {
         const prefs = JSON.parse(saved);
         if (typeof prefs.length === 'number') setLength(prefs.length);
-        if (typeof prefs.includeLowercase === 'boolean') setIncludeLowercase(prefs.includeLowercase);
-        if (typeof prefs.includeUppercase === 'boolean') setIncludeUppercase(prefs.includeUppercase);
-        if (typeof prefs.includeNumbers === 'boolean') setIncludeNumbers(prefs.includeNumbers);
-        if (typeof prefs.includeSymbols === 'boolean') setIncludeSymbols(prefs.includeSymbols);
+        if (prefs.options && typeof prefs.options === 'object') {
+          setOptions((prev) => ({ ...prev, ...prefs.options }));
+        }
       } catch {}
     }
   }, []);
@@ -37,13 +45,10 @@ const PasswordGenerator = () => {
   useEffect(() => {
     const prefs = {
       length,
-      includeLowercase,
-      includeUppercase,
-      includeNumbers,
-      includeSymbols
+      options,
     };
     localStorage.setItem('passwordPrefs', JSON.stringify(prefs));
-  }, [length, includeLowercase, includeUppercase, includeNumbers, includeSymbols]);
+  }, [length, options]);
 
   useEffect(() => {
     // Create a MutationObserver to watch for the --can-animate property
@@ -87,45 +92,54 @@ const PasswordGenerator = () => {
   }, []);
 
   const generatePassword = () => {
-    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
-    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const numbers = '0123456789';
-    const symbols = '!@#$%^&*()-_=+[]{}|;:\'",./<>?';
+    const activeSets = Object.entries(options)
+      .filter(([, enabled]) => enabled)
+      .map(([key]) => CHAR_SETS[key]);
 
-    let chars = '';
-    if (includeLowercase) chars += lowercase;
-    if (includeUppercase) chars += uppercase;
-    if (includeNumbers) chars += numbers;
-    if (includeSymbols) chars += symbols;
-
-    if (chars === '') {
+    if (activeSets.length === 0) {
       setPassword('Please select at least one character type');
       return;
     }
 
-    let generatedPassword = '';
-    const randomValues = new Uint32Array(length);
+    const passwordChars = [];
+
+    // Ensure at least one character from each active set
+    activeSets.forEach((set) => {
+      const randIndex = crypto.getRandomValues(new Uint32Array(1))[0] % set.length;
+      passwordChars.push(set[randIndex]);
+    });
+
+    const allChars = activeSets.join('');
+    const remainingLength = length - passwordChars.length;
+    const randomValues = new Uint32Array(remainingLength);
     crypto.getRandomValues(randomValues);
-    for (let i = 0; i < length; i++) {
-      const randomIndex = randomValues[i] % chars.length;
-      generatedPassword += chars[randomIndex];
+    for (let i = 0; i < remainingLength; i++) {
+      const randomIndex = randomValues[i] % allChars.length;
+      passwordChars.push(allChars[randomIndex]);
     }
+
+    // Shuffle the result to avoid predictable positions
+    for (let i = passwordChars.length - 1; i > 0; i--) {
+      const randIndex = crypto.getRandomValues(new Uint32Array(1))[0] % (i + 1);
+      [passwordChars[i], passwordChars[randIndex]] = [
+        passwordChars[randIndex],
+        passwordChars[i],
+      ];
+    }
+
+    const generatedPassword = passwordChars.join('');
 
     setPassword(generatedPassword);
     setCopyStatus('idle');
 
     trackPasswordGeneration({
       length,
-      options: {
-        lowercase: includeLowercase,
-        uppercase: includeUppercase,
-        numbers: includeNumbers,
-        symbols: includeSymbols
-      }
+      options,
     });
 
     // Animation for password change
-    gsap.fromTo(passwordRef.current,
+    gsap.fromTo(
+      passwordRef.current,
       { scale: 0.95, opacity: 0.5 },
       { duration: 0.3, scale: 1, opacity: 1, ease: 'power2.out' }
     );
@@ -209,26 +223,34 @@ const PasswordGenerator = () => {
           <div className="space-y-4">
             <Toggle
               label="Include Lowercase"
-              checked={includeLowercase}
-              onChange={(e) => setIncludeLowercase(e.target.checked)}
+              checked={options.lowercase}
+              onChange={(e) =>
+                setOptions({ ...options, lowercase: e.target.checked })
+              }
             />
 
             <Toggle
               label="Include Uppercase"
-              checked={includeUppercase}
-              onChange={(e) => setIncludeUppercase(e.target.checked)}
+              checked={options.uppercase}
+              onChange={(e) =>
+                setOptions({ ...options, uppercase: e.target.checked })
+              }
             />
 
             <Toggle
               label="Include Numbers"
-              checked={includeNumbers}
-              onChange={(e) => setIncludeNumbers(e.target.checked)}
+              checked={options.numbers}
+              onChange={(e) =>
+                setOptions({ ...options, numbers: e.target.checked })
+              }
             />
 
             <Toggle
               label="Include Symbols"
-              checked={includeSymbols}
-              onChange={(e) => setIncludeSymbols(e.target.checked)}
+              checked={options.symbols}
+              onChange={(e) =>
+                setOptions({ ...options, symbols: e.target.checked })
+              }
             />
           </div>
         </div>
@@ -237,7 +259,10 @@ const PasswordGenerator = () => {
           className="btn btn-primary mt-6 text-lg"
           onClick={generatePassword}
           disabled={
-            !includeLowercase && !includeUppercase && !includeNumbers && !includeSymbols
+            !options.lowercase &&
+            !options.uppercase &&
+            !options.numbers &&
+            !options.symbols
           }
         >
           Generate Password
