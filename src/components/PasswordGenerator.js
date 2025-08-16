@@ -78,8 +78,10 @@ const PasswordGenerator = () => {
     }
 
     let generatedPassword = '';
+    const randomValues = new Uint32Array(length);
+    crypto.getRandomValues(randomValues);
     for (let i = 0; i < length; i++) {
-      const randomIndex = Math.floor(Math.random() * chars.length);
+      const randomIndex = randomValues[i] % chars.length;
       generatedPassword += chars[randomIndex];
     }
 
