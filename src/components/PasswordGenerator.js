@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { gsap } from 'gsap';
 import Toggle from './Toggle';
 import Slider from './Slider';
 import { trackPasswordGeneration, trackCopyToClipboard } from '../lib/gtag';
@@ -28,6 +27,13 @@ const PasswordGenerator = () => {
   const passwordRef = useRef(null);
   const passwordInputRef = useRef(null);
   const controlsRef = useRef(null);
+  const gsapRef = useRef(null);
+
+  useEffect(() => {
+    import('gsap').then((mod) => {
+      gsapRef.current = mod.gsap || mod.default || mod;
+    });
+  }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem('passwordPrefs');
@@ -58,14 +64,14 @@ const PasswordGenerator = () => {
           const canAnimate = mutation.target.style.getPropertyValue('--can-animate');
           if (canAnimate === 'true') {
             // Start animations after title animation
-            gsap.fromTo(cardRef.current,
+            gsapRef.current?.fromTo(cardRef.current,
               { y: 50, opacity: 0 },
               { duration: 0.8, y: 0, opacity: 1, ease: 'power3.out' }
             );
 
-            gsap.fromTo(controlsRef.current.children,
+            gsapRef.current?.fromTo(controlsRef.current.children,
               { y: 20, opacity: 0 },
-              { 
+              {
                 duration: 0.5,
                 y: 0,
                 opacity: 1,
@@ -138,7 +144,7 @@ const PasswordGenerator = () => {
     });
 
     // Animation for password change
-    gsap.fromTo(
+    gsapRef.current?.fromTo(
       passwordRef.current,
       { scale: 0.95, opacity: 0.5 },
       { duration: 0.3, scale: 1, opacity: 1, ease: 'power2.out' }
@@ -167,7 +173,7 @@ const PasswordGenerator = () => {
       trackCopyToClipboard();
 
       // Animation for copy success
-      gsap.fromTo(passwordRef.current,
+      gsapRef.current?.fromTo(passwordRef.current,
         { scale: 1 },
         { duration: 0.2, scale: 1.05, yoyo: true, repeat: 1, ease: 'power2.out' }
       );
