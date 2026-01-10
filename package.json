@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@vercel/analytics": "^1.6.1",
     "daisyui": "^4.12.14",
     "gsap": "^3.12.5",
     "next": "^15.0.3",
