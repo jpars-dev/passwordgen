@@ -1,0 +1,723 @@
+/**
+ * @file globals.css
+ * @description Global styles for the Password Generator application.
+ *
+ * This stylesheet defines the complete visual design system including:
+ * - CSS custom properties (variables) for consistent theming
+ * - Base reset and typography styles
+ * - Layout components (container, header, controls)
+ * - Password display with dynamic typography scaling
+ * - Interactive elements (buttons, sliders)
+ * - Responsive design for mobile and desktop
+ * - Decorative effects (grain texture overlay)
+ *
+ * ## Responsive Breakpoints
+ * - Mobile: <= 640px (controls reflow to stacked layout)
+ * - Desktop: > 640px (controls in horizontal row)
+ *
+ * ## Typography Scaling
+ * Password display uses dynamic sizing based on password length:
+ * - length-xs (1-8 chars): Extra large font for short passwords
+ * - length-sm (9-14 chars): Large font
+ * - length-md (15-20 chars): Medium font
+ * - length-lg (21-26 chars): Smaller font
+ * - length-xl (27-32 chars): Smallest font for long passwords
+ */
+
+/* ============================================================================
+   TAILWIND DIRECTIVES
+   ============================================================================ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================================
+   EXTERNAL FONTS
+   ============================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
+/* ============================================================================
+   CSS VARIABLES (Custom Properties)
+
+   Design system color tokens for consistent theming.
+   Uses a grayscale palette with black and white as primary colors.
+   ============================================================================ */
+
+:root {
+  /* Primary colors */
+  --black: #9B3A34;  /* Pantone 18-1440 TCX Chilli Oil */
+  --white: #ffffff;
+
+  /* Grayscale palette - used for UI elements, text, and backgrounds */
+  --gray-100: #f5f5f5;  /* Lightest gray - subtle backgrounds */
+  --gray-200: #e5e5e5;  /* Light gray - borders, inactive states */
+  --gray-300: #d4d4d4;  /* Medium-light gray - placeholder text */
+  --gray-400: #a3a3a3;  /* Medium gray - secondary text */
+  --gray-500: #737373;  /* Medium-dark gray - helper text */
+  --gray-600: #525252;  /* Dark gray - hover states */
+  --gray-700: #404040;  /* Darker gray - emphasis */
+  --gray-800: #262626;  /* Very dark gray - high contrast */
+  --gray-900: #171717;  /* Near-black - maximum contrast */
+}
+
+/* ============================================================================
+   BASE/RESET STYLES
+
+   Normalize browser defaults and establish baseline styles.
+   ============================================================================ */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  background: var(--white);
+  color: var(--black);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;   /* Smoother fonts on macOS/iOS */
+  -moz-osx-font-smoothing: grayscale;    /* Smoother fonts on Firefox */
+}
+
+html {
+  position: relative;
+}
+
+/* ============================================================================
+   LAYOUT - Main Container
+
+   Uses CSS Grid to create a two-row layout:
+   - Row 1: Password display area (takes remaining space)
+   - Row 2: Controls bar (auto height based on content)
+   ============================================================================ */
+
+.generator-container {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: 1fr auto;  /* Password area expands, controls shrink-wrap */
+  position: relative;
+}
+
+/* ============================================================================
+   LAYOUT - Site Header
+
+   Absolutely positioned header with brand and about link.
+   Floats above the password display area.
+   ============================================================================ */
+
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 32px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background: transparent;
+}
+
+.site-brand {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.site-logo {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.site-brand-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--gray-400);
+  white-space: nowrap;
+}
+
+.site-about {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--gray-400);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.site-about:hover {
+  color: var(--gray-500);
+}
+
+/* ============================================================================
+   PASSWORD DISPLAY - Hero Section
+
+   Large, centered password display that acts as the main visual element.
+   Clicking anywhere in this area copies the password to clipboard.
+   ============================================================================ */
+
+.password-hero {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 10vh 8vw;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  position: relative;
+  z-index: 2;
+}
+
+/* Interactive hover states for copy-to-clipboard feedback */
+.password-hero:hover {
+  background-color: var(--gray-100);
+}
+
+.password-hero:active {
+  background-color: var(--gray-200);
+}
+
+/* ============================================================================
+   PASSWORD DISPLAY - Typography
+
+   Base styles for the password text. Uses monospace-like spacing
+   with tight letter-spacing for a modern look.
+   ============================================================================ */
+
+.password-display {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--black);
+  text-align: center;
+  white-space: nowrap;            /* Prevent line breaks */
+  max-width: 95vw;                /* Ensure it fits on screen */
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ============================================================================
+   PASSWORD DISPLAY - Typography Scaling
+
+   Dynamic font sizing based on password length to ensure the password
+   always fits on one line while remaining readable.
+
+   Uses min() to cap maximum size on large screens while allowing
+   fluid scaling on smaller screens via viewport units.
+
+   Length ranges:
+   - length-xs: 1-8 characters (largest text)
+   - length-sm: 9-14 characters
+   - length-md: 15-20 characters
+   - length-lg: 21-26 characters
+   - length-xl: 27-32 characters (smallest text)
+   ============================================================================ */
+
+/* Extra short passwords (1-8 chars): Maximum visual impact */
+.password-display.length-xs {
+  font-size: min(15vw, 12rem);   /* Up to 192px on large screens */
+  font-weight: 600;              /* Slightly bolder */
+  letter-spacing: -0.04em;       /* Tighter tracking */
+}
+
+/* Short passwords (9-14 chars): Large but not overwhelming */
+.password-display.length-sm {
+  font-size: min(10vw, 8rem);    /* Up to 128px */
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+/* Medium passwords (15-20 chars): Balanced sizing */
+.password-display.length-md {
+  font-size: min(5.5vw, 5rem);   /* Up to 80px */
+  font-weight: 500;
+}
+
+/* Long passwords (21-26 chars): Prioritize fitting on screen */
+.password-display.length-lg {
+  font-size: min(4vw, 3rem);     /* Up to 48px */
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+/* Extra long passwords (27-32 chars): Smallest readable size */
+.password-display.length-xl {
+  font-size: min(2.8vw, 1.75rem); /* Up to 28px */
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* ============================================================================
+   PASSWORD DISPLAY - Copy Indicator
+
+   Subtle text below the password indicating copy status.
+   Changes appearance on successful copy.
+   ============================================================================ */
+
+.copy-indicator {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gray-400);
+  transition: all 0.3s ease;
+}
+
+/* Success state: darker text for confirmation */
+.copy-indicator.success {
+  color: var(--black);
+}
+
+/* ============================================================================
+   PASSWORD DISPLAY - Placeholder State
+
+   Displayed when no password has been generated yet.
+   Acts as a large, clickable call-to-action.
+   ============================================================================ */
+
+.password-placeholder {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.placeholder-text {
+  font-size: clamp(3rem, 12vw, 10rem);  /* Fluid sizing with bounds */
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+  color: var(--gray-200);
+  transition: color 0.3s ease;
+  user-select: none;                     /* Prevent text selection */
+  text-align: center;
+}
+
+/* Darken on hover to indicate interactivity */
+.password-placeholder:hover .placeholder-text {
+  color: var(--gray-300);
+}
+
+/* ============================================================================
+   CONTROLS - Bottom Bar
+
+   Fixed bar at the bottom containing all password generation controls.
+   Uses flexbox for horizontal layout with responsive reflow on mobile.
+   ============================================================================ */
+
+.controls-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 32px;
+  border-top: 1px solid var(--gray-200);
+  background: transparent;
+  gap: 24px;
+  position: relative;
+  z-index: 2;
+}
+
+/* ============================================================================
+   RESPONSIVE BREAKPOINTS - Mobile Controls
+
+   On screens 640px and below, controls reflow to a stacked layout:
+   - Length slider takes full width at top
+   - Generate button on left, character options on right below
+   ============================================================================ */
+
+@media (max-width: 640px) {
+  .controls-bar {
+    flex-wrap: wrap;
+    padding: 20px 24px 32px;
+    gap: 16px;
+    justify-content: space-between;
+  }
+}
+
+/* Control sections: left (generate), center (slider), right (options) */
+.controls-left,
+.controls-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.controls-center {
+  flex: 1;
+  max-width: 400px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Mobile: Reorder controls using CSS order property */
+@media (max-width: 640px) {
+  /* Slider moves to top row */
+  .controls-center {
+    flex: 0 0 100%;     /* Full width */
+    max-width: none;
+    order: 1;           /* First in visual order */
+    margin-bottom: 8px;
+  }
+
+  /* Generate button on left, below slider */
+  .controls-left {
+    order: 2;
+    justify-content: flex-start;
+  }
+
+  /* Character options on right, below slider */
+  .controls-right {
+    order: 3;
+    justify-content: flex-end;
+  }
+}
+
+/* ============================================================================
+   CONTROLS - Generate Button
+
+   Primary action button with pill shape and hover effects.
+   ============================================================================ */
+
+.generate-btn {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 14px 28px;
+  background: var(--black);
+  color: var(--white);
+  border: none;
+  border-radius: 100px;           /* Pill shape */
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* Hover: Scale up with enhanced shadow */
+.generate-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+}
+
+/* Active: Scale down for "pressed" effect */
+.generate-btn:active:not(:disabled) {
+  transform: scale(0.98);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+/* Disabled: Grayed out appearance */
+.generate-btn:disabled {
+  background: var(--gray-300);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ============================================================================
+   CONTROLS - Labels
+
+   Small uppercase labels for control sections.
+   ============================================================================ */
+
+.control-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gray-400);
+}
+
+/* ============================================================================
+   CONTROLS - Length Slider
+
+   Custom-styled range input for password length selection.
+   Uses ::webkit and ::moz prefixes for cross-browser styling.
+   ============================================================================ */
+
+.length-control {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+/* Slider track styling */
+.length-slider {
+  flex: 1;
+  height: 8px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--gray-200);
+  border-radius: 100px;
+  outline: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.length-slider:hover {
+  background: var(--gray-300);
+}
+
+/* Slider thumb (handle) - WebKit browsers */
+.length-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 28px;
+  height: 28px;
+  background: var(--black);
+  border-radius: 50%;
+  cursor: grab;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.length-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+.length-slider::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(0.95);
+}
+
+/* Slider thumb - Firefox */
+.length-slider::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  background: var(--black);
+  border: none;
+  border-radius: 50%;
+  cursor: grab;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* Length value display */
+.length-value {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--black);
+  min-width: 32px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;  /* Fixed-width numbers for stability */
+}
+
+/* ============================================================================
+   CONTROLS - Character Set Option Buttons
+
+   Toggle buttons for including/excluding character sets.
+   Active state shows inverted colors (white on black).
+   ============================================================================ */
+
+.option-btn {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 10px 16px;
+  background: var(--gray-100);
+  color: var(--gray-400);
+  border: none;
+  border-radius: 100px;           /* Pill shape */
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Hover: Slightly darker with scale effect */
+.option-btn:hover {
+  background: var(--gray-200);
+  color: var(--gray-600);
+  transform: scale(1.05);
+}
+
+/* Active press: Scale down */
+.option-btn:active {
+  transform: scale(0.95);
+}
+
+/* Selected/Active state: Inverted colors */
+.option-btn.active {
+  background: var(--black);
+  color: var(--white);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.option-btn.active:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* ============================================================================
+   EFFECTS/DECORATIONS - Grain Texture Overlay
+
+   Subtle noise texture applied over the entire page for a tactile,
+   premium feel. Uses an inline SVG with turbulence filter.
+
+   - Very low opacity (2%) for subtlety
+   - Fixed positioning covers the viewport
+   - pointer-events: none allows clicking through
+   - High z-index ensures it's on top but non-interactive
+   ============================================================================ */
+
+html::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.12;
+  pointer-events: none;
+  z-index: 99999;
+}
+
+/* ============================================================================
+   MODAL - About Popup
+   ============================================================================ */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: var(--white);
+  padding: 40px;
+  border-radius: 16px;
+  max-width: 400px;
+  width: 90%;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--gray-400);
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+
+.modal-close:hover {
+  color: var(--black);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.modal-logo {
+  width: 28px;
+  height: 28px;
+}
+
+.modal-brand {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--gray-400);
+}
+
+.modal-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--gray-600);
+  margin-bottom: 16px;
+}
+
+.modal-credit {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  color: var(--gray-500);
+  margin-bottom: 24px;
+}
+
+.modal-credit a {
+  color: var(--black);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.modal-credit a:hover {
+  text-decoration: underline;
+}
+
+.modal-links {
+  display: flex;
+  gap: 12px;
+}
+
+.modal-links a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: var(--gray-500);
+  border: 1px solid var(--gray-200);
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.modal-links a:hover {
+  background: var(--black);
+  color: var(--white);
+  border-color: var(--black);
+}
+
+/* ============================================================================
+   EFFECTS - Mouse Following Gradient Glow
+
+   Subtle gradient that follows the cursor for an elevated, interactive feel.
+   ============================================================================ */
+
+.mouse-glow {
+  position: fixed;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 250, 245, 0.95) 0%,
+    rgba(255, 248, 240, 0.5) 30%,
+    rgba(255, 252, 250, 0.2) 55%,
+    transparent 75%
+  );
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+}

@@ -1,0 +1,21 @@
+{
+  "name": "The Password Generator by jpars-dev",
+  "short_name": "Password Generator",
+  "description": "A refined password generator with no memory. Your passwords are generated locally in your browser and never stored or sent anywhere. Something useful, thoughtfully made.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffd000",
+  "theme_color": "#ffd000",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
