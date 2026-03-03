@@ -171,7 +171,7 @@ const PasswordGenerator = () => {
               A refined password generator with no memory. Your passwords are generated locally in your browser and never stored or sent anywhere. Something useful, thoughtfully made.
             </p>
             <p className="modal-credit">
-              Created by <a href="https://justinparsons.com" target="_blank" rel="noopener noreferrer">Justin Parsons</a>
+              Created by <a href="https://jpars.dev" target="_blank" rel="noopener noreferrer">Justin Parsons</a>
             </p>
             <div className="modal-links">
               <a href="https://github.com/jpars-dev" target="_blank" rel="noopener noreferrer" title="GitHub">
