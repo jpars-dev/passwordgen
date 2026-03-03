@@ -47,7 +47,7 @@
 
 :root {
   /* Primary colors */
-  --black: #9B3A34;  /* Pantone 18-1440 TCX Chilli Oil */
+  --black: #5a0a1a;
   --white: #ffffff;
 
   /* Grayscale palette - used for UI elements, text, and backgrounds */
@@ -126,22 +126,18 @@ html {
   display: inline-flex;
   flex-direction: row;
   align-items: center;
-  gap: 10px;
+  gap: 0;
+  text-decoration: none;
 }
 
-.site-logo {
-  width: 24px;
+.site-brand .site-logo-wordmark {
+  margin-left: -4px;
+}
+
+.site-logo-wordmark {
   height: 24px;
+  width: auto;
   flex-shrink: 0;
-}
-
-.site-brand-text {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  color: var(--gray-400);
-  white-space: nowrap;
 }
 
 .site-about {
@@ -634,21 +630,14 @@ html::after {
 .modal-header {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0;
   margin-bottom: 20px;
 }
 
-.modal-logo {
-  width: 28px;
-  height: 28px;
-}
-
-.modal-brand {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  color: var(--gray-400);
+.modal-logo-wordmark {
+  height: 26px;
+  width: auto;
+  margin-left: -4px;
 }
 
 .modal-text {
